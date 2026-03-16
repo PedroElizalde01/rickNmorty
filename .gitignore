@@ -1,0 +1,36 @@
+.next
+.swc
+node_modules
+.env
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# local env files
+.env.local
+.env.*.local
+
+# build / export output
+out
+
+# coverage
+coverage
+
+# local caches
+.turbo
+.eslintcache
+.stylelintcache
+.parcel-cache
+
+# editor/OS noise
+.DS_Store
+.vscode/
+.idea/
+*.iml
+
+# TypeScript / tooling
+*.tsbuildinfo
+.vercel
