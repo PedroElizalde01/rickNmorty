@@ -117,4 +117,39 @@ describe("CharacterPanel", () => {
       expect(screen.getByText("Character 21")).toBeInTheDocument();
     });
   });
+
+  it("shows error message when fetch fails", async () => {
+    mockGetCharacters.mockRejectedValue(new Error("Failed to fetch characters (500)"));
+
+    render(<CharacterPanel label="Character #1" />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Failed to fetch characters (500)")).toBeInTheDocument();
+    });
+  });
+
+  it("renders fewer cards on the last page", async () => {
+    const lastPage = {
+      info: { count: 826, pages: 42, next: null, prev: "prev" },
+      results: Array.from({ length: 6 }, (_, i) => ({
+        id: i + 821,
+        name: `Character ${i + 821}`,
+        status: "Alive" as const,
+        species: "Human",
+        image: `/char${i + 821}.jpg`,
+        episode: [],
+      })),
+    };
+    mockGetCharacters.mockResolvedValue(lastPage);
+
+    render(<CharacterPanel label="Character #1" />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Character 821")).toBeInTheDocument();
+    });
+
+    expect(screen.getByText("Character 826")).toBeInTheDocument();
+    const cards = document.querySelectorAll(".card");
+    expect(cards).toHaveLength(6);
+  });
 });

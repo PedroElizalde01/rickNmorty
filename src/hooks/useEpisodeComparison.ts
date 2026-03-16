@@ -3,10 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Character, Episode } from "@/types/api";
 import { getEpisodes } from "@/lib/api";
-
-function extractEpisodeIds(character: Character): number[] {
-  return character.episode.map((url) => Number(url.split("/").pop()));
-}
+import { compareEpisodes, extractEpisodeIds } from "@/lib/compareEpisodes";
 
 export function useEpisodeComparison(char1: Character | null, char2: Character | null) {
   const [episodes, setEpisodes] = useState<Map<number, Episode>>(new Map());
@@ -17,8 +14,8 @@ export function useEpisodeComparison(char1: Character | null, char2: Character |
   const id2 = char2?.id ?? null;
   const currentKey = id1 !== null && id2 !== null ? `${id1}-${id2}` : null;
 
-  const ids1 = useMemo(() => (char1 ? extractEpisodeIds(char1) : []), [char1?.id]);
-  const ids2 = useMemo(() => (char2 ? extractEpisodeIds(char2) : []), [char2?.id]);
+  const ids1 = useMemo(() => (char1 ? extractEpisodeIds(char1.episode) : []), [char1?.id]);
+  const ids2 = useMemo(() => (char2 ? extractEpisodeIds(char2.episode) : []), [char2?.id]);
 
   const ids1Ref = useRef(ids1);
   const ids2Ref = useRef(ids2);
@@ -55,35 +52,14 @@ export function useEpisodeComparison(char1: Character | null, char2: Character |
 
   const dataReady = fetchedKey === currentKey && !loading;
 
-  const { onlyChar1, shared, onlyChar2 } = useMemo(() => {
+  const comparison = useMemo(() => {
     if (!dataReady) return { onlyChar1: [], shared: [], onlyChar2: [] };
-
-    const set1 = new Set(ids1);
-    const set2 = new Set(ids2);
-    const only1: Episode[] = [];
-    const common: Episode[] = [];
-    const only2: Episode[] = [];
-
-    for (const id of set1) {
-      const ep = episodes.get(id);
-      if (!ep) continue;
-      if (set2.has(id)) common.push(ep);
-      else only1.push(ep);
-    }
-    for (const id of set2) {
-      if (set1.has(id)) continue;
-      const ep = episodes.get(id);
-      if (ep) only2.push(ep);
-    }
-
-    return { onlyChar1: only1, shared: common, onlyChar2: only2 };
+    return compareEpisodes(ids1, ids2, episodes);
   }, [dataReady, ids1, ids2, episodes]);
 
   return {
     ready: currentKey !== null,
     loading: loading || (currentKey !== null && !dataReady),
-    onlyChar1,
-    shared,
-    onlyChar2,
+    ...comparison,
   };
 }

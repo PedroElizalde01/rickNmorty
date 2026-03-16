@@ -6,6 +6,7 @@ import * as api from "@/lib/api";
 jest.mock("@/lib/api");
 const mockGetCharacters = api.getCharacters as jest.MockedFunction<typeof api.getCharacters>;
 const mockGetEpisodes = api.getEpisodes as jest.MockedFunction<typeof api.getEpisodes>;
+const mockGetCharactersByIds = api.getCharactersByIds as jest.MockedFunction<typeof api.getCharactersByIds>;
 
 function makeCharacter(id: number, name: string, episodeIds: number[]) {
   return {
@@ -27,10 +28,10 @@ const mockPage = {
 };
 
 const mockEpisodesData = [
-  { id: 1, name: "Pilot", air_date: "Dec 2, 2013", episode: "S01E01", characters: [] },
-  { id: 2, name: "Lawnmower Dog", air_date: "Dec 9, 2013", episode: "S01E02", characters: [] },
-  { id: 3, name: "Anatomy Park", air_date: "Dec 16, 2013", episode: "S01E03", characters: [] },
-  { id: 4, name: "M. Night Shaym-Aliens!", air_date: "Jan 13, 2014", episode: "S01E04", characters: [] },
+  { id: 1, name: "Pilot", air_date: "Dec 2, 2013", episode: "S01E01", characters: ["https://rickandmortyapi.com/api/character/1"] },
+  { id: 2, name: "Lawnmower Dog", air_date: "Dec 9, 2013", episode: "S01E02", characters: ["https://rickandmortyapi.com/api/character/1", "https://rickandmortyapi.com/api/character/2"] },
+  { id: 3, name: "Anatomy Park", air_date: "Dec 16, 2013", episode: "S01E03", characters: ["https://rickandmortyapi.com/api/character/1", "https://rickandmortyapi.com/api/character/2"] },
+  { id: 4, name: "M. Night Shaym-Aliens!", air_date: "Jan 13, 2014", episode: "S01E04", characters: ["https://rickandmortyapi.com/api/character/2"] },
 ];
 
 describe("Home page", () => {
@@ -105,5 +106,75 @@ describe("Home page", () => {
     expect(screen.getByText("Lawnmower Dog")).toBeInTheDocument();
     expect(screen.getByText("Anatomy Park")).toBeInTheDocument();
     expect(screen.getByText("M. Night Shaym-Aliens!")).toBeInTheDocument();
+  });
+
+  it("does not show episodes after selecting only one character", async () => {
+    render(<Home />);
+
+    await waitFor(() => {
+      expect(screen.getAllByText("Rick Sanchez").length).toBeGreaterThan(0);
+    });
+
+    await userEvent.click(screen.getAllByText("Rick Sanchez")[0]);
+
+    expect(screen.queryByText(/Only Episodes/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Shared Episodes/)).not.toBeInTheDocument();
+  });
+
+  it("opens modal when clicking an episode", async () => {
+    mockGetCharactersByIds.mockResolvedValue([
+      { id: 1, name: "Rick Sanchez", status: "Alive", species: "Human", image: "/rick.jpg", episode: [] },
+    ]);
+
+    render(<Home />);
+
+    await waitFor(() => {
+      expect(screen.getAllByText("Rick Sanchez").length).toBeGreaterThan(0);
+    });
+
+    await userEvent.click(screen.getAllByText("Rick Sanchez")[0]);
+    await userEvent.click(screen.getAllByText("Morty Smith")[1]);
+
+    await waitFor(() => {
+      expect(screen.getByText("Pilot")).toBeInTheDocument();
+    });
+
+    await userEvent.click(screen.getByText("Pilot"));
+
+    await waitFor(() => {
+      expect(screen.getByText("Characters (1)")).toBeInTheDocument();
+      expect(screen.getByLabelText("Close")).toBeInTheDocument();
+    });
+  });
+
+  it("closes modal when close button is clicked", async () => {
+    mockGetCharactersByIds.mockResolvedValue([
+      { id: 1, name: "Rick Modal", status: "Alive", species: "Human", image: "/rick.jpg", episode: [] },
+    ]);
+
+    render(<Home />);
+
+    await waitFor(() => {
+      expect(screen.getAllByText("Rick Sanchez").length).toBeGreaterThan(0);
+    });
+
+    await userEvent.click(screen.getAllByText("Rick Sanchez")[0]);
+    await userEvent.click(screen.getAllByText("Morty Smith")[1]);
+
+    await waitFor(() => {
+      expect(screen.getByText("Pilot")).toBeInTheDocument();
+    });
+
+    await userEvent.click(screen.getByText("Pilot"));
+
+    await waitFor(() => {
+      expect(screen.getByText("Rick Modal")).toBeInTheDocument();
+    });
+
+    await userEvent.click(screen.getByLabelText("Close"));
+
+    await waitFor(() => {
+      expect(screen.queryByText("Rick Modal")).not.toBeInTheDocument();
+    });
   });
 });
