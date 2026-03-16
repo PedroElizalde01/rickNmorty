@@ -13,7 +13,7 @@ export default function Home() {
 
       <section>
         <div className="character-layout">
-          <CharacterPanel label="Character #1" selectedIndex={0} />
+          <CharacterPanel label="Character #1" />
 
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }} />
 

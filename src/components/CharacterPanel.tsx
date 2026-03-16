@@ -1,49 +1,89 @@
-import { CharacterCard } from "./CharacterCard";
+"use client";
 
-const PLACEHOLDER_CHARACTERS = [
-  { name: "Rick Sanchez", status: "Alive", species: "Human" },
-  { name: "Morty Smith", status: "Alive", species: "Human" },
-  { name: "Summer Smith", status: "Alive", species: "Human" },
-  { name: "Beth Smith", status: "Alive", species: "Human" },
-  { name: "Jerry Smith", status: "Alive", species: "Human" },
-  { name: "Birdperson", status: "Dead", species: "Birdperson" },
-] as const;
+import { CharacterCard } from "./CharacterCard";
+import { useCharacters } from "@/hooks/useCharacters";
 
 interface Props {
   label: string;
-  selectedIndex?: number;
+  selectedId?: number | null;
+  onSelect?: (id: number) => void;
 }
 
-export function CharacterPanel({ label, selectedIndex }: Props) {
-  const pages = ["1", "2", "3", "…", "42"];
+export function CharacterPanel({ label, selectedId, onSelect }: Props) {
+  const { characters, page, totalPages, loading, error, goToPage } = useCharacters();
+
+  function getPaginationRange(): (number | "…")[] {
+    if (totalPages <= 5) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+    if (page <= 3) return [1, 2, 3, 4, "…", totalPages];
+    if (page >= totalPages - 2) return [1, "…", totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+    return [1, "…", page - 1, page, page + 1, "…", totalPages];
+  }
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
       <div className="panel-header">
         <h2 className="label">{label}</h2>
-        <span className="page-indicator">page 1 / 42</span>
+        <span className="page-indicator">page {page} / {totalPages}</span>
       </div>
 
-      <div className="card-grid">
-        {PLACEHOLDER_CHARACTERS.map((char, i) => (
-          <CharacterCard
-            key={char.name}
-            name={char.name}
-            status={char.status}
-            species={char.species}
-            selected={i === selectedIndex}
-          />
-        ))}
+      {error && (
+        <p style={{ color: "#eb5757", fontSize: "0.85rem" }}>
+          {error}
+        </p>
+      )}
+
+      <div className="card-grid" style={loading ? { opacity: 0.4, pointerEvents: "none" } : undefined}>
+        {characters.length === 0
+          ? Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="card" />
+            ))
+          : characters.slice(0, 8).map((char) => (
+              <CharacterCard
+                key={char.id}
+                name={char.name}
+                status={char.status}
+                species={char.species}
+                image={char.image}
+                selected={char.id === selectedId}
+                onClick={() => onSelect?.(char.id)}
+              />
+            ))}
       </div>
 
       <div className="pagination">
-        <button className="page-btn">←</button>
-        {pages.map((p) => (
-          <button key={p} className={`page-btn${p === "1" ? " active" : ""}`}>
-            {p}
-          </button>
-        ))}
-        <button className="page-btn">→</button>
+        <button
+          className="page-btn"
+          disabled={page === 1}
+          onClick={() => goToPage(page - 1)}
+        >
+          ←
+        </button>
+
+        {getPaginationRange().map((p, i) =>
+          p === "…" ? (
+            <span key={`ellipsis-${i}`} className="page-btn" style={{ cursor: "default", border: "none" }}>
+              …
+            </span>
+          ) : (
+            <button
+              key={p}
+              className={`page-btn${p === page ? " active" : ""}`}
+              onClick={() => goToPage(p)}
+            >
+              {p}
+            </button>
+          )
+        )}
+
+        <button
+          className="page-btn"
+          disabled={page === totalPages}
+          onClick={() => goToPage(page + 1)}
+        >
+          →
+        </button>
       </div>
     </div>
   );

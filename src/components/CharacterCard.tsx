@@ -1,8 +1,12 @@
+"use client";
+
 interface Props {
   name: string;
   status: "Alive" | "Dead" | "unknown";
   species: string;
+  image: string;
   selected?: boolean;
+  onClick?: () => void;
 }
 
 const STATUS_COLORS = {
@@ -11,10 +15,14 @@ const STATUS_COLORS = {
   unknown: "#9f938e",
 };
 
-export function CharacterCard({ name, status, species, selected = false }: Props) {
+export function CharacterCard({ name, status, species, image, selected = false, onClick }: Props) {
   return (
-    <article className={`card${selected ? " selected" : ""}`}>
-      <div className="card-avatar" />
+    <article className={`card${selected ? " selected" : ""}`} onClick={onClick}>
+      <img
+        src={image}
+        alt={name}
+        className="card-avatar"
+      />
 
       <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem", minWidth: 0 }}>
         <span className="card-name">{name}</span>

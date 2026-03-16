@@ -166,6 +166,7 @@ button:hover {
   background: var(--surface-1);
   border: 1px solid var(--line);
   flex-shrink: 0;
+  object-fit: cover;
 }
 
 .card-name {
@@ -223,6 +224,7 @@ button:hover {
 .card-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
+  grid-template-rows: repeat(4, 90px);
   gap: 14px;
 }
 
@@ -244,6 +246,11 @@ button:hover {
   padding: 0.25rem 0.55rem;
   cursor: pointer;
   min-width: 2rem;
+}
+
+.page-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
 }
 
 .page-btn.active {
