@@ -22,6 +22,7 @@ export function CharacterCard({ name, status, species, image, selected = false, 
         src={image}
         alt={name}
         className="card-avatar"
+        onError={(e) => { e.currentTarget.src = "/default-avatar.svg"; }}
       />
 
       <div className="flex flex-col gap-1 min-w-0">

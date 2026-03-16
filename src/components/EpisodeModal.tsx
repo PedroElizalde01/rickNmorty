@@ -70,7 +70,7 @@ export function EpisodeModal({ episode, onClose }: Props) {
             <div className="modal-grid">
               {characters.map((char) => (
                 <div key={char.id} className="modal-char">
-                  <img src={char.image} alt={char.name} className="modal-char-avatar" />
+                  <img src={char.image} alt={char.name} className="modal-char-avatar" onError={(e) => { e.currentTarget.src = "/default-avatar.svg"; }} />
                   <span className="modal-char-name">{char.name}</span>
                   <span className="modal-char-species">{char.species}</span>
                 </div>
