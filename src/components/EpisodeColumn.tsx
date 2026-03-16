@@ -1,12 +1,5 @@
 import { EpisodeItem } from "./EpisodeItem";
-
-const PLACEHOLDER_EPISODES = [
-  { code: "S01E01", name: "Pilot", airDate: "Dec 2, 2013" },
-  { code: "S01E02", name: "Lawnmower Dog", airDate: "Dec 9, 2013" },
-  { code: "S01E03", name: "Anatomy Park", airDate: "Dec 16, 2013" },
-  { code: "S01E06", name: "Rick Potion #9", airDate: "Jan 27, 2014" },
-  { code: "S02E01", name: "A Rickle in Time", airDate: "Jul 26, 2015" },
-];
+import type { Episode } from "@/types/api";
 
 const LABELS = {
   left: "Character #1 — Only Episodes",
@@ -18,10 +11,10 @@ type Variant = keyof typeof LABELS;
 
 interface Props {
   variant: Variant;
-  empty?: boolean;
+  episodes: Episode[];
 }
 
-export function EpisodeColumn({ variant, empty = false }: Props) {
+export function EpisodeColumn({ variant, episodes }: Props) {
   const isShared = variant === "center";
 
   return (
@@ -33,14 +26,17 @@ export function EpisodeColumn({ variant, empty = false }: Props) {
       </div>
 
       <div className="episode-col-body">
-        {empty ? (
-          <p className="episode-empty">
-            Select a character in both panels to compare episodes.
-          </p>
+        {episodes.length === 0 ? (
+          <p className="episode-empty">No episodes</p>
         ) : (
           <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
-            {PLACEHOLDER_EPISODES.map((ep) => (
-              <EpisodeItem key={ep.code} code={ep.code} name={ep.name} airDate={ep.airDate} />
+            {episodes.map((ep) => (
+              <EpisodeItem
+                key={ep.id}
+                code={ep.episode}
+                name={ep.name}
+                airDate={ep.air_date}
+              />
             ))}
           </ul>
         )}

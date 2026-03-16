@@ -2,11 +2,12 @@
 
 import { CharacterCard } from "./CharacterCard";
 import { useCharacters } from "@/hooks/useCharacters";
+import type { Character } from "@/types/api";
 
 interface Props {
   label: string;
   selectedId?: number | null;
-  onSelect?: (id: number) => void;
+  onSelect?: (char: Character) => void;
 }
 
 export function CharacterPanel({ label, selectedId, onSelect }: Props) {
@@ -47,7 +48,7 @@ export function CharacterPanel({ label, selectedId, onSelect }: Props) {
                 species={char.species}
                 image={char.image}
                 selected={char.id === selectedId}
-                onClick={() => onSelect?.(char.id)}
+                onClick={() => onSelect?.(char)}
               />
             ))}
       </div>
