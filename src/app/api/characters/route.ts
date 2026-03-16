@@ -1,22 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import { env } from "@/lib/config/env";
+import { fetchWithRetry } from "@/lib/fetchWithRetry";
 
-async function fetchWithRetry(url: string, retries = 3): Promise<Response> {
-  for (let i = 0; i < retries; i++) {
-    const res = await fetch(url, { next: { revalidate: 60 } });
-    if (res.status !== 429) return res;
-    await new Promise((r) => setTimeout(r, 1000 * (i + 1)));
-  }
-  return fetch(url, { next: { revalidate: 60 } });
-}
+const API_BASE = process.env.NEXT_PUBLIC_RICK_AND_MORTY_API_URL ?? "https://rickandmortyapi.com/api";
 
 export async function GET(req: NextRequest) {
   const ids = req.nextUrl.searchParams.get("ids");
   const page = req.nextUrl.searchParams.get("page") ?? "1";
 
   const url = ids
-    ? `${env.apiBaseUrl}/character/${ids}`
-    : `${env.apiBaseUrl}/character?page=${page}`;
+    ? `${API_BASE}/character/${ids}`
+    : `${API_BASE}/character?page=${page}`;
 
   const res = await fetchWithRetry(url);
 

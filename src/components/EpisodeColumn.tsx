@@ -21,7 +21,7 @@ export function EpisodeColumn({ variant, episodes, onEpisodeClick }: Props) {
   return (
     <div className={`episode-col${isShared ? " shared" : ""}`}>
       <div className="episode-col-header">
-        <h3 className="label" style={isShared ? { color: "var(--text-strong)" } : undefined}>
+        <h3 className={`label${isShared ? " text-[var(--text-strong)]" : ""}`}>
           {LABELS[variant]}
         </h3>
       </div>
@@ -30,7 +30,7 @@ export function EpisodeColumn({ variant, episodes, onEpisodeClick }: Props) {
         {episodes.length === 0 ? (
           <p className="episode-empty">No episodes</p>
         ) : (
-          <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
+          <ul className="list-none m-0 p-0">
             {episodes.map((ep) => (
               <EpisodeItem
                 key={ep.id}

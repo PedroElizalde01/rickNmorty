@@ -30,18 +30,15 @@ export default function Home() {
         <div className="character-layout">
           <CharacterPanel label="Character #1" selectedId={char1?.id ?? null} onSelect={handleSelect1} />
 
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }} />
+          <div className="flex items-center justify-center" />
 
           <CharacterPanel label="Character #2" selectedId={char2?.id ?? null} onSelect={handleSelect2} />
         </div>
       </section>
 
       {comparison.ready && (
-        <section style={{ display: "flex", flexDirection: "column", gap: "1.2rem" }}>
-          <div
-            className="episode-layout"
-            style={comparison.loading ? { opacity: 0.4, pointerEvents: "none" } : undefined}
-          >
+        <section className="flex flex-col gap-5">
+          <div className={`episode-layout${comparison.loading ? " opacity-40 pointer-events-none" : ""}`}>
             <EpisodeColumn variant="left" episodes={comparison.onlyChar1} onEpisodeClick={setModalEpisode} />
             <EpisodeColumn variant="center" episodes={comparison.shared} onEpisodeClick={setModalEpisode} />
             <EpisodeColumn variant="right" episodes={comparison.onlyChar2} onEpisodeClick={setModalEpisode} />

@@ -1,14 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { env } from "@/lib/config/env";
+import { fetchWithRetry } from "@/lib/fetchWithRetry";
 
-async function fetchWithRetry(url: string, retries = 3): Promise<Response> {
-  for (let i = 0; i < retries; i++) {
-    const res = await fetch(url, { next: { revalidate: 60 } });
-    if (res.status !== 429) return res;
-    await new Promise((r) => setTimeout(r, 1000 * (i + 1)));
-  }
-  return fetch(url, { next: { revalidate: 60 } });
-}
+const API_BASE = process.env.NEXT_PUBLIC_RICK_AND_MORTY_API_URL ?? "https://rickandmortyapi.com/api";
 
 export async function GET(req: NextRequest) {
   const ids = req.nextUrl.searchParams.get("ids");
@@ -16,7 +9,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Missing ids param" }, { status: 400 });
   }
 
-  const res = await fetchWithRetry(`${env.apiBaseUrl}/episode/${ids}`);
+  const res = await fetchWithRetry(`${API_BASE}/episode/${ids}`);
 
   if (!res.ok) {
     return NextResponse.json(

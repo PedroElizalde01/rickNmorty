@@ -1,52 +1,17 @@
 import { renderHook, act, waitFor } from "@testing-library/react";
 import { useCharacters } from "./useCharacters";
+import { getCharacters } from "@/lib/api";
+import { makeCharacter, makePage } from "@/tests/factories";
 import type { Character, PaginatedResponse } from "@/types/api";
 
 jest.mock("@/lib/api");
-import { getCharacters } from "@/lib/api";
-
-const mockedGetCharacters = getCharacters as jest.MockedFunction<
-  typeof getCharacters
->;
-
-function makePage(
-  page: number,
-  totalPages: number,
-  results: Character[] = [],
-): PaginatedResponse<Character> {
-  return {
-    info: {
-      count: totalPages * 20,
-      pages: totalPages,
-      next:
-        page < totalPages
-          ? `https://rickandmortyapi.com/api/character?page=${page + 1}`
-          : null,
-      prev:
-        page > 1
-          ? `https://rickandmortyapi.com/api/character?page=${page - 1}`
-          : null,
-    },
-    results,
-  };
-}
-
-function makeCharacter(id: number): Character {
-  return {
-    id,
-    name: `Character ${id}`,
-    status: "Alive",
-    species: "Human",
-    image: `https://rickandmortyapi.com/api/character/avatar/${id}.jpeg`,
-    episode: [`https://rickandmortyapi.com/api/episode/1`],
-  };
-}
-
-beforeEach(() => {
-  jest.resetAllMocks();
-});
+const mockedGetCharacters = jest.mocked(getCharacters);
 
 describe("useCharacters", () => {
+  beforeEach(() => {
+    jest.resetAllMocks();
+  });
+
   it("fetches page 1 on mount and exposes results", async () => {
     const chars = [makeCharacter(1), makeCharacter(2)];
     mockedGetCharacters.mockResolvedValueOnce(makePage(1, 3, chars));
@@ -75,19 +40,30 @@ describe("useCharacters", () => {
     expect(result.current.characters).toEqual([]);
   });
 
-  it("ignores AbortError (does not set error state)", async () => {
-    const abortError = new DOMException("Aborted", "AbortError");
-    mockedGetCharacters.mockRejectedValueOnce(abortError);
+  it("ignores AbortError without setting error state", async () => {
+    // simulate what happens when the hook unmounts mid-flight:
+    // the effect cleanup calls controller.abort(), which rejects with AbortError
+    let rejectFetch!: (err: Error) => void;
 
-    const { result } = renderHook(() => useCharacters());
+    mockedGetCharacters.mockImplementationOnce(
+      () =>
+        new Promise((_resolve, reject) => {
+          rejectFetch = reject;
+        }),
+    );
 
-    // Give time for the rejection to process
+    const { result, unmount } = renderHook(() => useCharacters());
+
+    expect(result.current.loading).toBe(true);
+
+    // unmount triggers abort → the hook's catch should silently ignore it
+    unmount();
+
     await act(async () => {
-      await new Promise((r) => setTimeout(r, 50));
+      rejectFetch(new DOMException("Aborted", "AbortError"));
     });
 
-    // loading stays true because the AbortError handler returns early
-    // without calling setLoading(false)
+    // no error was set — the hook swallowed the AbortError
     expect(result.current.error).toBeNull();
   });
 
@@ -104,9 +80,7 @@ describe("useCharacters", () => {
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(result.current.characters).toEqual(page1);
 
-    act(() => {
-      result.current.goToPage(2);
-    });
+    act(() => result.current.goToPage(2));
 
     expect(result.current.loading).toBe(true);
 
@@ -115,14 +89,11 @@ describe("useCharacters", () => {
     expect(result.current.page).toBe(2);
     expect(result.current.characters).toEqual(page2);
     expect(mockedGetCharacters).toHaveBeenCalledTimes(2);
-    expect(mockedGetCharacters).toHaveBeenLastCalledWith(
-      2,
-      expect.any(AbortSignal),
-    );
+    expect(mockedGetCharacters).toHaveBeenLastCalledWith(2, expect.any(AbortSignal));
   });
 
-  it("aborts the previous request when page changes", async () => {
-    let resolvers: Array<(v: PaginatedResponse<Character>) => void> = [];
+  it("aborts the in-flight request when page changes", async () => {
+    const resolvers: Array<(v: PaginatedResponse<Character>) => void> = [];
 
     mockedGetCharacters.mockImplementation(
       (_page, signal) =>
@@ -136,18 +107,14 @@ describe("useCharacters", () => {
 
     const { result } = renderHook(() => useCharacters());
 
-    // First fetch is in-flight
+    // first fetch is in-flight
     expect(resolvers).toHaveLength(1);
 
-    // Navigate to page 2 — should abort first request
-    act(() => {
-      result.current.goToPage(2);
-    });
+    act(() => result.current.goToPage(2));
 
-    // Second fetch started
+    // page change triggered a second fetch, first one was aborted
     expect(resolvers).toHaveLength(2);
 
-    // Resolve second request
     await act(async () => {
       resolvers[1](makePage(2, 3, [makeCharacter(21)]));
     });

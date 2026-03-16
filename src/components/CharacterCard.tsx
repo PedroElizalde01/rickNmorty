@@ -24,7 +24,7 @@ export function CharacterCard({ name, status, species, image, selected = false, 
         className="card-avatar"
       />
 
-      <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem", minWidth: 0 }}>
+      <div className="flex flex-col gap-1 min-w-0">
         <span className="card-name">{name}</span>
         <span className="card-meta">
           <span className="status-dot" style={{ background: STATUS_COLORS[status] }} />

@@ -23,19 +23,17 @@ export function CharacterPanel({ label, selectedId, onSelect }: Props) {
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+    <div className="flex flex-col gap-4">
       <div className="panel-header">
         <h2 className="label">{label}</h2>
         <span className="page-indicator">page {page} / {totalPages}</span>
       </div>
 
       {error && (
-        <p style={{ color: "#eb5757", fontSize: "0.85rem" }}>
-          {error}
-        </p>
+        <p className="text-sm text-red-400">{error}</p>
       )}
 
-      <div className="card-grid" style={loading ? { opacity: 0.4, pointerEvents: "none" } : undefined}>
+      <div className={`card-grid${loading ? " opacity-40 pointer-events-none" : ""}`}>
         {characters.length === 0
           ? Array.from({ length: 8 }).map((_, i) => (
               <div key={i} className="card" />
@@ -64,7 +62,7 @@ export function CharacterPanel({ label, selectedId, onSelect }: Props) {
 
         {getPaginationRange().map((p, i) =>
           p === "…" ? (
-            <span key={`ellipsis-${i}`} className="page-btn" style={{ cursor: "default", border: "none" }}>
+            <span key={`ellipsis-${i}`} className="page-btn cursor-default border-none">
               …
             </span>
           ) : (

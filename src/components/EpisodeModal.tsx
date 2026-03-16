@@ -53,16 +53,16 @@ export function EpisodeModal({ episode, onClose }: Props) {
         </div>
 
         <div className="modal-body">
-          <h3 className="label" style={{ marginBottom: "0.8rem" }}>
+          <h3 className="label mb-3">
             Characters ({episode.characters.length})
           </h3>
 
           {loading ? (
             <div className="modal-grid">
               {Array.from({ length: Math.min(episode.characters.length, 12) }).map((_, i) => (
-                <div key={i} className="modal-char" style={{ opacity: 0.3 }}>
+                <div key={i} className="modal-char opacity-30">
                   <div className="modal-char-avatar" />
-                  <span className="modal-char-name" style={{ width: 60, height: 10, background: "var(--line)", borderRadius: 4 }} />
+                  <span className="modal-char-name w-[60px] h-[10px] bg-[var(--line)] rounded" />
                 </div>
               ))}
             </div>
