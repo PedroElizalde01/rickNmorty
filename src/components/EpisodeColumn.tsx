@@ -12,9 +12,10 @@ type Variant = keyof typeof LABELS;
 interface Props {
   variant: Variant;
   episodes: Episode[];
+  onEpisodeClick?: (episode: Episode) => void;
 }
 
-export function EpisodeColumn({ variant, episodes }: Props) {
+export function EpisodeColumn({ variant, episodes, onEpisodeClick }: Props) {
   const isShared = variant === "center";
 
   return (
@@ -36,6 +37,7 @@ export function EpisodeColumn({ variant, episodes }: Props) {
                 code={ep.episode}
                 name={ep.name}
                 airDate={ep.air_date}
+                onClick={() => onEpisodeClick?.(ep)}
               />
             ))}
           </ul>

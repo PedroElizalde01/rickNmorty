@@ -11,9 +11,14 @@ async function fetchWithRetry(url: string, retries = 3): Promise<Response> {
 }
 
 export async function GET(req: NextRequest) {
+  const ids = req.nextUrl.searchParams.get("ids");
   const page = req.nextUrl.searchParams.get("page") ?? "1";
 
-  const res = await fetchWithRetry(`${env.apiBaseUrl}/character?page=${page}`);
+  const url = ids
+    ? `${env.apiBaseUrl}/character/${ids}`
+    : `${env.apiBaseUrl}/character?page=${page}`;
+
+  const res = await fetchWithRetry(url);
 
   if (!res.ok) {
     return NextResponse.json(
@@ -23,5 +28,10 @@ export async function GET(req: NextRequest) {
   }
 
   const data = await res.json();
+
+  if (ids) {
+    return NextResponse.json(Array.isArray(data) ? data : [data]);
+  }
+
   return NextResponse.json(data);
 }

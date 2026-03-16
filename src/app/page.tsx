@@ -3,12 +3,14 @@
 import { useCallback, useState } from "react";
 import { CharacterPanel } from "@/components/CharacterPanel";
 import { EpisodeColumn } from "@/components/EpisodeColumn";
+import { EpisodeModal } from "@/components/EpisodeModal";
 import { useEpisodeComparison } from "@/hooks/useEpisodeComparison";
-import type { Character } from "@/types/api";
+import type { Character, Episode } from "@/types/api";
 
 export default function Home() {
   const [char1, setChar1] = useState<Character | null>(null);
   const [char2, setChar2] = useState<Character | null>(null);
+  const [modalEpisode, setModalEpisode] = useState<Episode | null>(null);
 
   const handleSelect1 = useCallback((c: Character) => setChar1(c), []);
   const handleSelect2 = useCallback((c: Character) => setChar2(c), []);
@@ -40,11 +42,15 @@ export default function Home() {
             className="episode-layout"
             style={comparison.loading ? { opacity: 0.4, pointerEvents: "none" } : undefined}
           >
-            <EpisodeColumn variant="left" episodes={comparison.onlyChar1} />
-            <EpisodeColumn variant="center" episodes={comparison.shared} />
-            <EpisodeColumn variant="right" episodes={comparison.onlyChar2} />
+            <EpisodeColumn variant="left" episodes={comparison.onlyChar1} onEpisodeClick={setModalEpisode} />
+            <EpisodeColumn variant="center" episodes={comparison.shared} onEpisodeClick={setModalEpisode} />
+            <EpisodeColumn variant="right" episodes={comparison.onlyChar2} onEpisodeClick={setModalEpisode} />
           </div>
         </section>
+      )}
+
+      {modalEpisode && (
+        <EpisodeModal episode={modalEpisode} onClose={() => setModalEpisode(null)} />
       )}
     </div>
   );
